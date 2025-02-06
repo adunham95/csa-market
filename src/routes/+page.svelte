@@ -23,15 +23,17 @@
 	]}
 />
 
-<EmailList
-	emailListId="follow-project"
-	title="Sign up"
-	description="Follow the project and get exclusive access"
-	features={[
-		{ title: 'Exclusive Access', description: 'Gain access to beta software when available' },
-		{
-			title: 'Follow The Development',
-			description: 'Access our newsletter and get detailed updates about what we are working on'
-		}
-	]}
-/>
+<div id="email-signup">
+	<EmailList
+		emailListId="follow-project"
+		title="Sign up"
+		description="Follow the project and get exclusive access"
+		features={[
+			{ title: 'Exclusive Access', description: 'Gain access to beta software when available' },
+			{
+				title: 'Follow The Development',
+				description: 'Access our newsletter and get detailed updates about what we are working on'
+			}
+		]}
+	/>
+</div>
