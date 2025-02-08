@@ -1,5 +1,5 @@
 <script lang="ts">
-	const routes = [{ title: 'Dashboard', path: '/dashboard' }];
+	const routes = [{ title: 'Market', path: '/market' }];
 	const profileRoutes = [{ title: 'My Profile', path: '/profile/me' }];
 	let mobileNabOpen = $state(false);
 	let profileOpen = $state(false);
