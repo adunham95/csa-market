@@ -18,6 +18,7 @@ model User{
   username String @unique
   passwordHash String 
   sessions Session[]
+  members ShopMember[]
 }
 
 model Session{
@@ -25,4 +26,29 @@ model Session{
   userId String
   user User @relation(fields: [userId], references:[id])
   expiresAt DateTime @default(now())
+}
+
+model Store{
+  id Int @id @default(autoincrement())
+  title String
+  banner String?
+  location String?
+  logo String?
+  members ShopMember[]
+  slug String?
+}
+
+model Announcement{
+  id Int @id @default(autoincrement())
+  title String
+  message String
+}
+
+model ShopMember{
+  id Int @id @default(autoincrement())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  storeId Int
+  Store Store @relation(fields: [storeId], references: [id])
+  role String @default("Owner")
 }
