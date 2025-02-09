@@ -1,15 +1,13 @@
 import { hash, verify } from '@node-rs/argon2';
 import { encodeBase32LowerCase } from '@oslojs/encoding';
 import { fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 import * as auth from '$lib/server/auth';
-import { db } from '$lib/server/db';
-import * as table from '$lib/server/db/schema';
 import type { Actions, PageServerLoad } from './$types';
+import { prisma } from '$lib/server/db/prisma';
 
 export const load: PageServerLoad = async (event) => {
 	if (event.locals.user) {
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	}
 	return {};
 };
@@ -21,18 +19,17 @@ export const actions: Actions = {
 		const password = formData.get('password');
 
 		if (!validateUsername(username)) {
-			return fail(400, { message: 'Invalid username (min 3, max 31 characters, alphanumeric only)' });
+			return fail(400, {
+				message: 'Invalid username (min 3, max 31 characters, alphanumeric only)'
+			});
 		}
 		if (!validatePassword(password)) {
 			return fail(400, { message: 'Invalid password (min 6, max 255 characters)' });
 		}
 
-		const results = await db
-			.select()
-			.from(table.user)
-			.where(eq(table.user.username, username));
+		const results = await prisma.user.findFirst({ where: { username } });
 
-		const existingUser = results.at(0);
+		const existingUser = results;
 		if (!existingUser) {
 			return fail(400, { message: 'Incorrect username or password' });
 		}
@@ -41,7 +38,7 @@ export const actions: Actions = {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
-			parallelism: 1,
+			parallelism: 1
 		});
 		if (!validPassword) {
 			return fail(400, { message: 'Incorrect username or password' });
@@ -51,7 +48,7 @@ export const actions: Actions = {
 		const session = await auth.createSession(sessionToken, existingUser.id);
 		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-		return redirect(302, '/demo/lucia');
+		return redirect(302, '/');
 	},
 	register: async (event) => {
 		const formData = await event.request.formData();
@@ -71,20 +68,21 @@ export const actions: Actions = {
 			memoryCost: 19456,
 			timeCost: 2,
 			outputLen: 32,
-			parallelism: 1,
+			parallelism: 1
 		});
 
 		try {
-			await db.insert(table.user).values({ id: userId, username, passwordHash });
+			await prisma.user.create({ data: { id: userId, username, passwordHash } });
 
 			const sessionToken = auth.generateSessionToken();
 			const session = await auth.createSession(sessionToken, userId);
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
-		} catch (e) {
+		} catch (e: unknown) {
+			console.log(e);
 			return fail(500, { message: 'An error has occurred' });
 		}
-		return redirect(302, '/demo/lucia');
-	},
+		return redirect(302, '/');
+	}
 };
 
 function generateUserId() {
@@ -104,9 +102,5 @@ function validateUsername(username: unknown): username is string {
 }
 
 function validatePassword(password: unknown): password is string {
-	return (
-		typeof password === 'string' &&
-		password.length >= 6 &&
-		password.length <= 255
-	);
+	return typeof password === 'string' && password.length >= 6 && password.length <= 255;
 }
